@@ -1,5 +1,6 @@
 # python import - http://docs.python.org/library/unittest.html
 import unittest
+from StringIO import StringIO
 
 # import intraday modules
 from pycfonb.parser import Row, ParsingError, statement as p
@@ -129,12 +130,38 @@ class TestStatement(unittest.TestCase):
             self.assertEqual(row.as_list()[i], getattr(row.as_obj(), p.FOOT_KEYS[i]))
             self.assertEqual(row.as_list()[i], FOOT_VALUES[i])
 
+    def test_statement(self):
+        # prepare file obj
+        file_obj = StringIO()
+        file_obj.write("%s\n" % HEAD_LINE)
+        file_obj.write("%s\n" % CONTENT_4_LINE)
+        file_obj.write("%s\n" % FOOT_LINE)
+        file_obj.seek(0)
+        # init statement
+        statement = p.Statement()
+        statement.parse(file_obj)
+        # prepare values to compare
+        header_line = p.parse_head(HEAD_LINE)
+        content_line = p.parse_content_4(CONTENT_4_LINE)
+        foot_line = p.parse_foot(FOOT_LINE)
+        # some tests
+        self.assertIsInstance(statement, p.Statement)
+        self.assertIsInstance(statement.header, Row)
+        self.assertIsInstance(statement.foot, Row)
+        self.assertIsInstance(statement.lines, list)
+        self.assertEqual(len(statement.lines), 1)
+        self.assertIsInstance(statement.lines[0], Row)
+        self.assertEqual(statement.header, header_line)
+        self.assertEqual(statement.foot, foot_line)
+        self.assertEqual(statement.lines[0], content_line)
+
 
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestStatement('test_parse_head'))
     suite.addTest(TestStatement('test_parse_content_4'))
     suite.addTest(TestStatement('test_parse_foot'))
+    suite.addTest(TestStatement('test_statement'))
     return suite
 
 

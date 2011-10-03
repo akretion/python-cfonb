@@ -279,3 +279,35 @@ def parse_foot(line):
     row.parse(FOOT_RE, FOOT_KEYS, line)
     # return initialized row
     return row
+
+
+class Statement(object):
+    """Satement file parser and container. Parse file object to corresponding
+    row objects for further use. Offers useful method for reading, writing and
+    comparing issues.
+    """
+
+    def __init__(self):
+        self.header = None
+        self.foot   = None
+        self.lines  = list()
+
+    def parse(self, file_obj):
+        file_lines  = file_obj.readlines()
+        # header and footer
+        self.header = parser.Row()
+        self.header.parse(HEAD_RE, HEAD_KEYS, file_lines[0])
+        self.foot   = parser.Row()
+        self.foot.parse(FOOT_RE, FOOT_KEYS, file_lines[-1])
+        # content
+        for i, l in enumerate(file_lines[1:-1]):
+            # parse line
+            row = parser.Row()
+            if CONTENT_4_RE.match(l):
+                row.parse(CONTENT_4_RE, CONTENT_4_KEYS, l, line_nb=i)
+            elif CONTENT_5_RE.match(l):
+                row.parse(CONTENT_5_RE, CONTENT_5_KEYS, l, line_nb=i)
+            else:
+                raise parser.ParsingError('line %s is invalid: "%s"' % (i, l))
+            # update content
+            self.lines.append(row)
