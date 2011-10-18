@@ -1,4 +1,5 @@
-== Python-CFONB ==
+Python-CFONB
+============
 
 Pure Python lib to read or write CFONB files:
 
@@ -7,10 +8,13 @@ Pure Python lib to read or write CFONB files:
 - format checker according bank specification: special char, mandatory fields, etc.
 
 
+Statement Parser
+----------------
+
 Here is the starting doctests to start the implementation::
 
-    >>> from cfonb import Statement
-    >>> statement = Statement()
+    >>> from cfonb.parser import statement as p
+    >>> statement = p.Statement()
     >>> statement.read_file('mon_releve.cfo')
 
 
@@ -44,3 +48,26 @@ Provides iterable statement lines::
     2011-08-19
     2011-08-19
     ....
+
+
+Transfert Writer
+----------------
+
+A pure python lib for write a transfer file CFONB is a French format transfer.
+
+
+How use it?
+^^^^^^^^^^^
+
+Prepare your content::
+
+>>> from cfonb.writer import transfert as w
+>>> transfert = w.Transfert()
+>>> transfert.setEmeteurInfos('2000121','bigbrother','virement de test',503103,2313033,1212,d)
+>>> transfert.add('un test','littlebrother','credit agricole ile de france',50011,6565329000,100,'un peu d\'argent',6335)
+>>> content = transfert.render()
+
+You can use a filename with render method::
+
+>>> transfert.render(filename='./virement.cfonb')
+
