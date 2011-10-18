@@ -35,13 +35,10 @@ class Transfert:
     >>> from datetime import date
     >>> d = date(2011,10,14)
     >>> a = Transfert()
-    >>> a.setEmeteurInfos('2000121','affility','virement de test',503103,2313033,1212,d)
+    >>> a = a.setEmeteurInfos('2000121','affility','virement de test',503103,2313033,1212,d)
     >>> a.render()
-    '0302        200012       14101affility                viremen
-    E     503102313033                                                   1212
-    \r\n0802        200012
-                                                                                     0000000000000000
-                                                                                     \r\n'
+    '0302        200012       14101affility                viremen                   E     503102313033                                                   1212       \\r\\n0802        200012                                                                                    0000000000000000                                          \\r\\n'
+
     """
     _emeteur = {}   #dict des infos sur l'emeteur du fichier de virement
     total    = 0    #total des virements en centime d'euros
