@@ -26,10 +26,9 @@ class TestTransfert(unittest.TestCase):
         a.setEmeteurInfos('2000121','bigbrother','virement de test',503103,2313033,1212,d)
         a.add('un test','littlebrother','credit agricole ile de france',50011,6565329000,100,'un peu d\'argent',6335)
         res = a.render()
-        want = '0302        200012       14101bigbrother              viremen                   E     503102313033                                                   1212       \r\n0602        200012un test     littlebrother           credit agricole ile de f        50011656530000000000010000un peu d\'argent                6335       \r\n0802        200012                                                                                    0000000000000000                                          \r\n'
-        _print(res)
-        _print(want)
-        import ipdb;ipdb.set_trace()
+        want = '0302        200012       14101bigbrother              viremen                   E     503102313033                                                   1212       \r\n0602        200012un test     littlebrother           credit agricole ile de f        50011656530000000000010000un peu d\'argent                6335       \r\n0802        200012                                                                                    0000000000010000                                          \r\n'
+        # _print(res)
+        # _print(want)
         assert res == want
 
 
