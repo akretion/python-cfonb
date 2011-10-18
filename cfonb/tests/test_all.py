@@ -1,6 +1,6 @@
 import unittest
 
-from pycfonb.tests import test_statement
+from cfonb.tests import test_statement
 
 def suite():
     suite = unittest.TestSuite()

@@ -2,8 +2,8 @@
 import unittest
 from StringIO import StringIO
 
-# import intraday modules
-from pycfonb.parser import Row, ParsingError, statement as p
+# import cfonb module
+from cfonb.parser import Row, ParsingError, statement as p
 
 
 HEAD_LINE = '0130002    00447     0000888899H  160811                                                  0000000132303H                '

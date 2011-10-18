@@ -1,8 +1,8 @@
 # python import
 import re
 
-# pycfonb import
-from pycfonb import parser
+# cfonb import
+from cfonb import parser
 
 
 HEAD_RE = re.compile(

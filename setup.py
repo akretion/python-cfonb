@@ -25,5 +25,5 @@ setup(
       entry_points="""
       # -*- Entry points: -*-
       """,
-      test_suite = "pycfonb.tests.test_all.suite"
+      test_suite = "cfonb.tests.test_all.suite"
       )
