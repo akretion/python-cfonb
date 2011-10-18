@@ -5,7 +5,8 @@ version = '0.1'
 
 long_description = open('README.rst').read()
 
-setup(name='python-cfonb',
+setup(
+      name='python-cfonb',
       version=version,
       description="Pure Python lib to read/write CFONB files.",
       long_description=long_description,
@@ -24,4 +25,5 @@ setup(name='python-cfonb',
       entry_points="""
       # -*- Entry points: -*-
       """,
+      test_suite = "pycfonb.tests.test_all.suite"
       )
