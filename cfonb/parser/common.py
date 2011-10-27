@@ -91,3 +91,41 @@ class Row(object):
 
     def __eq__(self, other) :
         return self.__dict == other.__dict
+
+
+
+
+def parse_amount(amount_str, nb_of_dec):
+    """ return a numerical amount from the cfonb amount string
+
+    >>> from cfonb.parser.common import parse_amount
+    >>> parse_amount('0001234{', 2)
+    123.4
+    >>> parse_amount('0000004843H', 2)
+    484.38
+    >>> parse_amount('000000920}', 2)
+    -92.0
+    >>> parse_amount('000117O', 3)
+    -1.176
+    """
+    # insert the comma
+    nb_of_dec = int(nb_of_dec)
+    amount_str = amount_str[:-nb_of_dec] + '.' + amount_str[-nb_of_dec:]
+    # translate the last char and set the sign
+    credit_trans = {'A': '1', 'B': '2', 'C': '3', 'D': '4', 'E': '5',
+                    'F': '6', 'G': '7', 'H': '8', 'I': '9', '{': '0'}
+    debit_trans  = {'J': '1', 'K': '2', 'L': '3', 'M': '4', 'N': '5',
+                    'O': '6', 'P': '7', 'Q': '8', 'R': '9', '}': '0'}
+    if amount_str[-1] in debit_trans:
+        amount_num = -float(amount_str.replace(amount_str[-1], debit_trans[amount_str[-1]]))
+    elif amount_str[-1] in credit_trans:
+        amount_num = float(amount_str.replace(amount_str[-1], credit_trans[amount_str[-1]]))
+    else:
+        raise Exception('Bad amount string')
+    return amount_num
+
+
+
+
+
+

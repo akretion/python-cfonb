@@ -51,15 +51,17 @@ Or as an object::
     >>> header.bank_code
     '30002'
 
-The statement lines between the header and the footer can be iterated (TODO use an iterator?)::
+The statement lines between the header and the footer can be iterated::
 
+    >>> # TODO: use an interator, and hide the parse_amount in the object
+    >>> from cfonb.parser.common import parse_amount
     >>> for line in statement.lines:
-    ...     print line.as_obj().bank_code
-    30002
-    30002
-    30002
-    30002
-
+    ...     l = line.as_obj()
+    ...     print parse_amount(l.amount, l.nb_of_dec)
+    -2000.0
+    -1000.0
+    4000.0
+    -3000.0
 
 
 Transfer Writer

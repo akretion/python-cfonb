@@ -311,3 +311,6 @@ class Statement(object):
                 raise parser.ParsingError('line %s is invalid: "%s"' % (i, l))
             # update content
             self.lines.append(row)
+
+
+
