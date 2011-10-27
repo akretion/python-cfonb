@@ -79,5 +79,5 @@ Prepare the contents::
 You can use a filename with render method::
 
     >>> transfert.render(filename='./virement.cfonb')
-    '0302        200012      ...'
+    "0302        200012      ..."
 
