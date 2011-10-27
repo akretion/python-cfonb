@@ -113,8 +113,8 @@ class TestStatement(unittest.TestCase):
             self.assertEqual(row.as_list()[i], getattr(row.as_obj(), p.CONTENT_4_KEYS[i]))
             self.assertEqual(row.as_list()[i], CONTENT_4_VALUES[i])
 
-    def test_parse_foot(self):
-        row = p.parse_foot(FOOT_LINE)
+    def test_parse_footer(self):
+        row = p.parse_footer(FOOT_LINE)
         # little type check
         self.assertIsInstance(row, Row, 'invalid row type: %s' % type(row))
         # list copy for check
@@ -143,16 +143,16 @@ class TestStatement(unittest.TestCase):
         # prepare values to compare
         header_line = p.parse_head(HEAD_LINE)
         content_line = p.parse_content_4(CONTENT_4_LINE)
-        foot_line = p.parse_foot(FOOT_LINE)
+        footer_line = p.parse_footer(FOOT_LINE)
         # some tests
         self.assertIsInstance(statement, p.Statement)
         self.assertIsInstance(statement.header, Row)
-        self.assertIsInstance(statement.foot, Row)
+        self.assertIsInstance(statement.footer, Row)
         self.assertIsInstance(statement.lines, list)
         self.assertEqual(len(statement.lines), 1)
         self.assertIsInstance(statement.lines[0], Row)
         self.assertEqual(statement.header, header_line)
-        self.assertEqual(statement.foot, foot_line)
+        self.assertEqual(statement.footer, footer_line)
         self.assertEqual(statement.lines[0], content_line)
 
 
@@ -160,7 +160,7 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTest(TestStatement('test_parse_head'))
     suite.addTest(TestStatement('test_parse_content_4'))
-    suite.addTest(TestStatement('test_parse_foot'))
+    suite.addTest(TestStatement('test_parse_footer'))
     suite.addTest(TestStatement('test_statement'))
     return suite
 

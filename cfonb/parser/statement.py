@@ -272,7 +272,7 @@ FOOT_KEYS = [
     ]
 
 
-def parse_foot(line):
+def parse_footer(line):
     # init row
     row = parser.Row()
     # set row data
@@ -289,7 +289,7 @@ class Statement(object):
 
     def __init__(self):
         self.header = None
-        self.foot   = None
+        self.footer   = None
         self.lines  = list()
 
     def parse(self, file_obj):
@@ -297,8 +297,8 @@ class Statement(object):
         # header and footer
         self.header = parser.Row()
         self.header.parse(HEAD_RE, HEAD_KEYS, file_lines[0])
-        self.foot   = parser.Row()
-        self.foot.parse(FOOT_RE, FOOT_KEYS, file_lines[-1])
+        self.footer   = parser.Row()
+        self.footer.parse(FOOT_RE, FOOT_KEYS, file_lines[-1])
         # content
         for i, l in enumerate(file_lines[1:-1]):
             # parse line

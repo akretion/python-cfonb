@@ -74,7 +74,7 @@ class Transfert:
         content += self._content
         content += self._footer()
         if (filename!=None):
-            f = open(filaname,'w')
+            f = open(filename,'w')
             f.write(content)
             f.close()
         return content
@@ -113,7 +113,7 @@ class Transfert:
         content += "E";
         #[zone D2-3] Espace reserve 5 caracteres
         content += self._space('',5)
-        #[zone D3] Code Guichet Emetteur 5 caracteres 
+        #[zone D3] Code Guichet Emetteur 5 caracteres
         content += self._space(self._emeteur['guichet'], 5)
         #[zone D4] Numero de compte Emetteur 11 caracteres
         content += self._space(self._emeteur['num_compte'], 11)
@@ -121,7 +121,7 @@ class Transfert:
         content += self._space('',16)
         #[zone F] Espace reserve 31 caracteres
         content += self._space('',31)
-        #[zone G1] code etablissement de la banque du donneur d'ordre 
+        #[zone G1] code etablissement de la banque du donneur d'ordre
         #          5 caracteres
         content += self._space(self._emeteur['banque'], 5)
         #[zone G2] Espace reserve 6 caracteres
@@ -181,7 +181,7 @@ class Transfert:
         #[zone D1] domiciliation : désignation en clair du guichet et de la
         #         banque de domiciliataire (facultatif) sur 24  caractères maxi
         content += self._space(domiciliation,24)
-        #[zone D2] balance des paiements sur 8 caractères 
+        #[zone D2] balance des paiements sur 8 caractères
         #         (réservé pour les salaires et pension)
         content += self._space("",8)
         #[zone D3] Code Guichet 5 caractères

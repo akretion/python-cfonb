@@ -1,73 +1,83 @@
 Python-CFONB
 ============
 
-Pure Python lib to read or write CFONB files:
+Introduction
+------------
+
+The `CFONB <http://fr.wikipedia.org/wiki/CFONB>`_ format is an old file format
+for banking interchange, made by the CFONB (Comité français d'organisation et
+de normalisation bancaires). It is still used today to retrieve bank statements
+or make transfer orders. The specifications of the format can be found on the `CFONB website <http://www.cfonb.org>`_.
+
+`python-cfonb` is a pure Python lib to read or write CFONB files, distributed under the LGPL license:
 
 - import method should read file-like object (with IOString or real plain text file)
 - export method to export Python object in CFO file
 - format checker according bank specification: special char, mandatory fields, etc.
 
+The first two usecase are : read bank statements, and make transfer orders
 
 Statement Parser
 ----------------
 
-Here is the starting doctests to start the implementation::
+You can read a statement like this::
 
-    >>> from cfonb.parser import statement as p
-    >>> statement = p.Statement()
-    >>> statement.read_file('mon_releve.cfo')
+    >>> from os.path import join
+    >>> statement_file = open(join('cfonb', 'tests', 'bank_statement.cfo'))
+    >>> from cfonb.parser.statement import Statement
+    >>> statement = Statement()
+    >>> statement.parse(statement_file)
 
-
-Or directly from a given str::
-
-    >>> statement.read_string( open('mon_releve.cfo').read() )
-    >>> statement.export(format='dict')
-    { 'blah blah j'ai pas encore d'idée, faut découper les champs.. }
-    >>> statement.export(format='json')
-    NotImplementedError
-
-
-Provides statement info::
+The statement has a header and a footer, which are both statement rows::
 
     >>> statement.header
-    <object HeaderLine>
-    >>> statement.header.start_date
-    datetime.date(2011,08,16)
-    >>> statement.header.end_date
-    datetime.date(2011,09,28)
+    <cfonb.parser.common.Row object at ...>
+    >>> statement.footer
+    <cfonb.parser.common.Row object at ...>
+
+A row can be read as a list::
+
+    >>> statement.header.as_list()
+    ['01', '30002', '    ', '00447', ...]
+
+Or as a dict::
+
+    >>> statement.header.as_dict()
+    {'bank_code': '30002', 'nb_of_dec': ' ', '_5': ...}
+
+Or as an object::
+
+    >>> header = statement.header.as_obj()
+    >>> header.bank_code
+    '30002'
+
+The statement lines between the header and the footer can be iterated (TODO use an iterator?)::
+
+    >>> for line in statement.lines:
+    ...     print line.as_obj().bank_code
+    30002
+    30002
+    30002
+    30002
 
 
-Provides iterable statement lines::
 
-    >>> for line in statement:
-            print line.date   # (ou bien line['date'] ?)
-    2011-08-16
-    2011-08-16
-    2011-08-17
-    2011-08-18
-    2011-08-19
-    2011-08-19
-    ....
+Transfer Writer
+---------------
 
+Prepare the contents::
 
-Transfert Writer
-----------------
-
-A pure python lib for write a transfer file CFONB is a French format transfer.
-
-
-How use it?
-^^^^^^^^^^^
-
-Prepare your content::
-
->>> from cfonb.writer import transfert as w
->>> transfert = w.Transfert()
->>> transfert.setEmeteurInfos('2000121','bigbrother','virement de test',503103,2313033,1212,d)
->>> transfert.add('un test','littlebrother','credit agricole ile de france',50011,6565329000,100,'un peu d\'argent',6335)
->>> content = transfert.render()
+    >>> from datetime import datetime
+    >>> from cfonb.writer.transfert import Transfert
+    >>> transfert = Transfert()
+    >>> transfert.setEmeteurInfos('2000121','bigbrother','virement de test',503103,2313033,1212,datetime(2011,11,27))
+    <cfonb.writer.transfert.Transfert instance at ...>
+    >>> transfert.add('un test','littlebrother','credit agricole ile de france',50011,6565329000,100,'un peu d\'argent',6335)
+    <cfonb.writer.transfert.Transfert instance at ...>
+    >>> content = transfert.render()
 
 You can use a filename with render method::
 
->>> transfert.render(filename='./virement.cfonb')
+    >>> transfert.render(filename='./virement.cfonb')
+    '0302        200012      ...'
 
