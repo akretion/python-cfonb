@@ -1,0 +1,6 @@
+TODO
+====
+
+- use a basic object field implementation to return python objects for numeric fields
+- merge concepts of the parser and the writer parts
+
