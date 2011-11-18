@@ -1,3 +1,5 @@
+# python import
+import math
 
 # blank only rule
 G__ = r'( {%d})'
@@ -93,8 +95,6 @@ class Row(object):
         return self.__dict == other.__dict
 
 
-
-
 def parse_amount(amount_str, nb_of_dec):
     """ return a numerical amount from the cfonb amount string
 
@@ -125,7 +125,33 @@ def parse_amount(amount_str, nb_of_dec):
     return amount_num
 
 
+def write_amount(amount, nb_of_dec):
+    """Returns a cfonb string for a numerical amount.
 
-
-
+    >>> from cfonb.parser.common import parse_amount
+    >>> write_amount(123.4, 2)
+    '0000000001234{'
+    >>> write_amount(484.38, 2)
+    '0000000004843H'
+    >>> write_amount(-92.0, 2)
+    '0000000000920}'
+    >>> write_amount(-1.176, 3)
+    '0000000000117O'
+    """
+    # split amount, ex.: (123.4, 2) -> dec = 40, num = 123
+    dec, num = math.modf(amount)
+    num = str(abs(num)).split('.')[0]
+    dec = '0' * nb_of_dec if dec == 0\
+            else str(abs(dec * math.pow(10, nb_of_dec))).split('.')[0]
+    # translate the last char and set the sign
+    credit_trans = ['{', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I']
+    debit_trans  = ['}', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
+    # prepare amount
+    amount_str = '%s%s' % (num, dec[:-1])
+    if amount > 0:
+        last_str = credit_trans[int(dec[-1])]
+    else:
+        last_str = debit_trans[int(dec[-1])]
+    # str result
+    return (amount_str + last_str).zfill(14)
 
