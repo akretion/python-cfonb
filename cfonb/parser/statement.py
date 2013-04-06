@@ -24,24 +24,6 @@ HEAD_RE = re.compile(
             }
         )
 
-
-[
-    H_RECORD_CODE,
-    H_BANK_CODE,
-    H__1,
-    H_DESK_CODE,
-    H_CURRENCY_CODE,
-    H_NB_OF_DEC,
-    H__2,
-    H_ACCOUNT_NB,
-    H__3,
-    H_PREV_DATE,
-    H__4,
-    H_PREV_AMOUNT,
-    H__5,
-] = range(13)
-
-
 HEAD_KEYS = [
     'record_code',
     'bank_code',
@@ -84,30 +66,6 @@ CONTENT_4_RE = re.compile(
             's': parser.G_AN_ % 16,    # _
             }
         )
-
-
-[
-    _4_RECORD_CODE,
-    _4_BANK_CODE,
-    _4_INTERNAL_CODE,
-    _4_DESK_CODE,
-    _4_CURRENCY_CODE,
-    _4_NB_OF_DEC,
-    _4__1,
-    _4_ACCOUNT_NB,
-    _4_OPERATION_CODE,
-    _4_OPERATION_DATE,
-    _4_REJECT_CODE,
-    _4_VALUE_DATE,
-    _4_LABEL,
-    _4__2,
-    _4_REFERENCE,
-    _4_EXEMPT_CODE,
-    _4__3,
-    _4_AMOUNT,
-    _4__4,
-] = range(19)
-
 
 CONTENT_4_KEYS = [
     'record_code',
@@ -153,25 +111,6 @@ CONTENT_5_RE = re.compile(
             }
         )
 
-
-[
-    _5_RECORD_CODE,
-    _5_BANK_CODE,
-    _5_INTERNAL_CODE,
-    _5_DESK_CODE,
-    _5_CURRENCY_CODE,
-    _5_NB_OF_DEC,
-    _5__1,
-    _5_ACCOUNT_NB,
-    _5_OPERATION_CODE,
-    _5_OPERATION_DATE,
-    _5__2,
-    _5_QUALIFIER,
-    _5_ADDITIONAL_INFO,
-    _5__3,
-] = range(14)
-
-
 CONTENT_5_KEYS = [
     'record_code',
     'bank_code',
@@ -210,24 +149,6 @@ FOOT_RE = re.compile(
             'm': parser.G__   % 16,    # _
             }
         )
-
-
-[
-    F_RECORD_CODE,
-    F_BANK_CODE,
-    F__1,
-    F_DESK_CODE,
-    F_CURRENCY_CODE,
-    F_NB_OF_DEC,
-    F__2,
-    F_ACCOUNT_NB,
-    F__3,
-    F_NEXT_DATE,
-    F__4,
-    F_NEXT_AMOUNT,
-    F__5,
-] = range(13)
-
 
 FOOT_KEYS = [
     'record_code',
