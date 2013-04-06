@@ -6,7 +6,7 @@ from cfonb import parser
 
 
 HEAD_RE = re.compile(
-        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s$'
+        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s\n$'
         % {
             'a': '(01)',               # record code
             'b': parser.G_N   % 5,     # bank code
@@ -59,17 +59,8 @@ HEAD_KEYS = [
     ]
 
 
-def parse_head(line):
-    # init row
-    row = parser.Row()
-    # set row data
-    row.parse(HEAD_RE, HEAD_KEYS, line)
-    # return initialized row
-    return row
-
-
 CONTENT_4_RE = re.compile(
-        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s%(n)s%(o)s%(p)s%(q)s%(r)s%(s)s$'
+        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s%(n)s%(o)s%(p)s%(q)s%(r)s%(s)s\n$'
         % {
             'a': '(04)',               # record code
             'b': parser.G_N   % 5,     # bank code
@@ -83,9 +74,10 @@ CONTENT_4_RE = re.compile(
             'j': parser.G_N   % 6,     # operation date
             'k': parser.G_N_  % 2,     # reject code
             'l': parser.G_N   % 6,     # value date
-            'm': parser.G_AN_ % 31,    # label
+            'm': parser.G_ALL % 31,    # label
             'n': parser.G_AN_ % 2,     # _
-            'o': parser.G_N   % 7,     # reference
+            'o': parser.G_AN   % 7,    # reference in CFONB norme it's G_N
+                                       # but in the real world it's an G_AN 
             'p': parser.G_AN_ % 1,     # exempt code
             'q': parser.G_AN_ % 1,     # _
             'r': parser.G_AMT,         # amount
@@ -140,17 +132,9 @@ CONTENT_4_KEYS = [
     ]
 
 
-def parse_content_4(line):
-    # init row
-    row = parser.Row()
-    # set row data
-    row.parse(CONTENT_4_RE, CONTENT_4_KEYS, line)
-    # return initialized row
-    return row
-
 
 CONTENT_5_RE = re.compile(
-        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s%(n)s$'
+        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s%(n)s\n$'
         % {
             'a': '(05)',               # record code
             'b': parser.G_N   % 5,     # bank code
@@ -158,13 +142,13 @@ CONTENT_5_RE = re.compile(
             'd': parser.G_N   % 5,     # desk code
             'e': parser.G_A_  % 3,     # currency code
             'f': parser.G_N_  % 1,     # nb of decimal
-            'g': parser.G__   % 1,     # _
+            'g': parser.G_AN_ % 1,     # _
             'h': parser.G_AN  % 11,    # account nb
             'i': parser.G_AN  % 2,     # operation code
             'j': parser.G_N   % 6,     # operation date
             'k': parser.G__   % 5,     # _
             'l': parser.G_AN  % 3,     # qualifier
-            'm': parser.G_AN  % 70,    # additional info
+            'm': parser.G_ALL % 70,    # additional info
             'n': parser.G__   % 2,     # _
             }
         )
@@ -206,20 +190,10 @@ CONTENT_5_KEYS = [
     ]
 
 
-def parse_content_5(line):
-    """NOT TESTED
-    """
-    # init row
-    row = parser.Row()
-    # set row data
-    row.parse(CONTENT_5_RE, CONTENT_5_KEYS, line)
-    # return initialized row
-    return row
-
 
 
 FOOT_RE = re.compile(
-        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s$'
+        r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s\n$'
         % {
             'a': '(07)',               # record code
             'b': parser.G_N   % 5,     # bank code
@@ -272,14 +246,6 @@ FOOT_KEYS = [
     ]
 
 
-def parse_footer(line):
-    # init row
-    row = parser.Row()
-    # set row data
-    row.parse(FOOT_RE, FOOT_KEYS, line)
-    # return initialized row
-    return row
-
 
 class Statement(object):
     """Satement file parser and container. Parse file object to corresponding
@@ -292,25 +258,44 @@ class Statement(object):
         self.footer   = None
         self.lines  = list()
 
+    def parse_header(self, line):
+        self.header = parser.Row(HEAD_RE, HEAD_KEYS, line)
+
+    def parse_footer(self, line):
+        self.footer = parser.Row(FOOT_RE, FOOT_KEYS, line)
+
+    def parse_content_4(self, line):
+        # init row
+        row = parser.Row(CONTENT_4_RE, CONTENT_4_KEYS, line)
+        # return initialized row
+        return row
+
+    def parse_content_5(self, line):
+        """NOT TESTED
+        """
+        # init row
+        row = parser.Row(CONTENT_5_RE, CONTENT_5_KEYS, line)
+        # return initialized row
+        return row
+
+
     def parse(self, file_obj):
         file_lines  = file_obj.readlines()
         # header and footer
-        self.header = parser.Row()
-        self.header.parse(HEAD_RE, HEAD_KEYS, file_lines[0])
-        self.footer   = parser.Row()
-        self.footer.parse(FOOT_RE, FOOT_KEYS, file_lines[-1])
+        self.parse_header(file_lines.pop(0))
+        self.parse_footer(file_lines.pop())
+
         # content
-        for i, l in enumerate(file_lines[1:-1]):
+        for index, line in enumerate(file_lines):
             # parse line
-            row = parser.Row()
-            if CONTENT_4_RE.match(l):
-                row.parse(CONTENT_4_RE, CONTENT_4_KEYS, l, line_nb=i)
-            elif CONTENT_5_RE.match(l):
-                row.parse(CONTENT_5_RE, CONTENT_5_KEYS, l, line_nb=i)
+            if CONTENT_4_RE.match(line):
+                row = self.parse_content_4(line)
+            elif CONTENT_5_RE.match(line):
+                row = self.parse_content_5(line)
             else:
-                raise parser.ParsingError('line %s is invalid: "%s"' % (i, l))
+                if line[0:2] in ['01', '07']:#we don't take care of subtotal
+                    continue
+                else:
+                    raise parser.ParsingError('line %s is invalid: "%s"' % (index, line))
             # update content
             self.lines.append(row)
-
-
-
