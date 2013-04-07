@@ -44,7 +44,7 @@ class Obj():
         self.__dict__.update(entries)
 
 
-class Row(object):
+class Row(dict):
     """Generic row object to manage bank file parsing, compare and reading.
     """
 
@@ -61,14 +61,13 @@ class Row(object):
         if match is None:
             raise ParsingError('line is invalid: "%s"' % line)
         else:
-            self.__dict__ = dict(zip(keys, list(match.groups())))
+            self.update(dict(zip(keys, list(match.groups()))))
 
-    def __getitem__(self, attr):
-        return getattr(self, attr)
+    def __getattr__(self, attr):
+        return self[attr]
 
-    def __setitem__(self, attr, value):
-        return setattr(self, attr, value) 
-
+    def __setattr__(self, attr, value):
+        self[attr] = value 
 
 def parse_amount(amount_str, nb_of_dec):
     """ return a numerical amount from the cfonb amount string

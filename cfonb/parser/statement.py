@@ -1,6 +1,6 @@
 # python import
 import re
-
+from collections import OrderedDict
 # cfonb import
 from cfonb import parser
 
@@ -128,9 +128,81 @@ CONTENT_5_KEYS = [
     '_3',
     ]
 
+# http://www.cfonb.org/Web/cfonb/cfonbmain.nsf/DocumentsByIDWeb/7JSHS5/$File/7-8%20Evolution%20Releve%20Comptes%20120%20caracteres%20operations%20virement%20et%20prelevement%20sepa%20V2_0_2010_03.pdf
+ADDITIONAL_INFO = {
+   "NPY": OrderedDict([
+        ('debtor_name',                 parser.G_ALL %70),
+    ]),
+    "IPY": OrderedDict([
+        ('debtor_id',                   parser.G_ALL %35),
+        ('debtor_id_type',              parser.G_ALL %35),
+    ]),
+    "NBE": OrderedDict([
+        ('creditor_name',               parser.G_ALL %70),
+    ]),
+    "IBE": OrderedDict([
+        ('creditor_id',                 parser.G_ALL %35),
+        ('creditor_id_type',            parser.G_ALL %35),
+    ]),
+    "NPO": OrderedDict([
+        ('ultimate_debtor_name',        parser.G_ALL %70),
+    ]),
+    "IPO": OrderedDict([
+        ('ultimate_debtor_id',          parser.G_ALL %35),
+        ('ultimate_debtor_type',        parser.G_ALL %35),
+    ]),
+    "NBU": OrderedDict([
+        ('ultimate_creditor_name',      parser.G_ALL %70),
+    ]),
+    "IBU": OrderedDict([
+        ('ultimate_creditor_id',        parser.G_ALL %35),
+        ('ultimate_creditor_type',      parser.G_ALL %35),
+    ]),
+    "LCC": OrderedDict([
+        ('remittance_information_1',    parser.G_ALL %70),
+    ]),
+    "LC2": OrderedDict([
+        ('remittance_information_2',    parser.G_ALL %70),
+    ]),
+    "LCS": OrderedDict([
+        ('creditor_ref_information',    parser.G_ALL %70),
+    ]),
+    "RCN": OrderedDict([
+        ('end2end_identification',      parser.G_ALL %35),
+        ('purpose',                     parser.G_ALL %35),
+    ]),
+    "RCN": OrderedDict([
+        ('payment_infor_id',            parser.G_ALL %35),
+        ('instruction_id',              parser.G_ALL %35),
+    ]),
+ 
+#Specific to bank transfers
+    "MMO": OrderedDict([
+        ('currency_code',               parser.G_AN  %3),
+        ('nb_of_dec_amount',            parser.G_N   %1),
+        ('equivalent_amount',           parser.G_N_  %14),
+        ('nb_of_dec_exchange_rate',     parser.G_N_  %2),
+        ('exchange_rate',               parser.G_N_  %11),
+        ('_',                           parser.G_AN_ %39)
+    ]),
+    "CBE": OrderedDict([
+        ('creditor_account',            parser.G_ALL %70),
+    ]),   
 
 
-
+#specific to withdrawal
+# TODO FIXME it's look like there is something wrong in 
+# confb norme indeed 35+4 != 70 and 35 != 70 :S outch!
+#    "RUM": OrderedDict([
+#        ('mandate_identification',      parser.G_ALL %35),
+#        ('sequence_type',               parser.G_ALL %4),
+#    ]),
+#    "CPY": OrderedDict([
+#        ('debtor_account',              parser.G_ALL %35),
+#    ]),
+#    
+}  
+   
 FOOT_RE = re.compile(
         r'^%(a)s%(b)s%(c)s%(d)s%(e)s%(f)s%(g)s%(h)s%(i)s%(j)s%(k)s%(l)s%(m)s\n$'
         % {
@@ -191,14 +263,39 @@ class Statement(object):
         # return initialized row
         return row
 
-    def parse_content_5(self, line):
+    def parser_sub_content_5(self, row):
+        regex = r''
+        keys = []
+        for key, value in ADDITIONAL_INFO[row.qualifier].iteritems():
+            regex += value
+            keys += [key]
+        reg = re.compile(regex + r'$')
+        match = reg.match(row.additional_info)
+        # re check
+        if match is None:
+            import pdb; pdb.set_trace()
+            raise parser.ParsingError('line is invalid: "%s"' % row.additional_info)
+        else:
+            res = dict(zip(keys, list(match.groups())))
+            import pdb; pdb.set_trace()
+            return res
+
+    def parse_content_5(self, previous_row, line):
         """NOT TESTED
         """
         # init row
         row = parser.Row(CONTENT_5_RE, CONTENT_5_KEYS, line)
         # return initialized row
-        return row
-
+        if row.qualifier == 'LIB':
+            index = 0
+            while True:
+                index += 1
+                if not previous_row.get('LIB_%s'%index):
+                    previous_row['LIB_%s'%index] = row.additional_info.strip()
+                    break
+        else:
+            previous_row.update(self.parser_sub_content_5(row))
+        #return sub_content
 
     def parse(self, file_obj):
         file_lines  = file_obj.readlines()
@@ -211,12 +308,12 @@ class Statement(object):
             # parse line
             if CONTENT_4_RE.match(line):
                 row = self.parse_content_4(line)
+                self.lines.append(row)
             elif CONTENT_5_RE.match(line):
-                row = self.parse_content_5(line)
+                self.parse_content_5(row, line)
             else:
                 if line[0:2] in ['01', '07']:#we don't take care of subtotal
                     continue
                 else:
                     raise parser.ParsingError('line %s is invalid: "%s"' % (index, line))
             # update content
-            self.lines.append(row)
