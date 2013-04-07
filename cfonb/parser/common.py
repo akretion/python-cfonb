@@ -1,5 +1,6 @@
 # python import
 import math
+import re
 
 # blank only rule
 G__ = r'( {%d})'
@@ -48,7 +49,7 @@ class Row(dict):
     """Generic row object to manage bank file parsing, compare and reading.
     """
 
-    def __init__(self, re, keys, line):
+    def __init__(self, line):
         """Parses flat line according re rules, line and additional info.
 
         :param re: regular expression to match with
@@ -56,18 +57,277 @@ class Row(dict):
         :param line: the flat line to be parsed
         """
         # do re match
-        match = re.match(line)
-        # re check
-        if match is None:
-            raise ParsingError('line is invalid: "%s"' % line)
-        else:
-            self.update(dict(zip(keys, list(match.groups()))))
-
+        parser = Parser.get_parser(line[0:2])
+        self.update(parser().parse(line))
+        
     def __getattr__(self, attr):
         return self[attr]
 
     def __setattr__(self, attr, value):
         self[attr] = value 
+
+
+class Parser(object):
+    """ Parser method for reading bank statement line """
+    @classmethod
+    def get_parser(cls, key):
+        for sub_cls in cls.__subclasses__():
+            if sub_cls._code == key:
+               return sub_cls
+        import pdb; pdb.set_trace()
+        raise Exception('No class found')
+
+    def __init__(self):
+        self._regex 
+        regex = r''
+        keys = []
+        for key, value in self._regex:
+            regex += value
+            keys += [key]
+        self.re = re.compile(regex + r'$')
+        self.keys = keys
+
+    def parse(self, line):
+        if line[-1] == "\n":
+            line = line[:-1]
+        match = self.re.match(line)
+        # re check
+        if match is None:
+            raise ParsingError('line is invalid: "%s"' % line)
+        else:
+            return dict(zip(self.keys, list(match.groups())))
+
+
+# http://www.cfonb.org/Web/cfonb/cfonbmain.nsf/DocumentsByIDWeb/7JSHS5/$File/7-8%20Evolution%20Releve%20Comptes%20120%20caracteres%20operations%20virement%20et%20prelevement%20sepa%20V2_0_2010_03.pdf
+
+class ParserContent01(Parser):
+    _code = '01'
+    _regex = [
+        ('record_code',     '(01)'           ),
+        ('bank_code',       G_N   % 5 ),
+        ('_1',              G__   % 4 ),
+        ('desk_code',       G_N   % 5 ),
+        ('currency_code',   G_A_  % 3 ),
+        ('nb_of_dec',       G_N_  % 1 ),
+        ('_2',              G__   % 1 ),
+        ('account_nb',      G_AN  % 11),
+        ('_3',              G__   % 2 ),
+        ('prev_date',       G_N   % 6 ),
+        ('_4',              G__   % 50),
+        ('prev_amount',     G_AMT     ),
+        ('_5',              G__   % 16),
+     ]
+
+
+class ParserContent04(Parser):
+    _code = '04'
+    _regex = [
+        ('record_code',     '(04)'           ),
+        ('bank_code',       G_N   % 5 ),
+        ('inernal_code',    G_AN  % 4 ),
+        ('desk_code',       G_N   % 5 ),
+        ('currency_code',   G_A_  % 3 ),
+        ('nb_of_dec',       G_N_  % 1 ),
+        ('_1',              G_AN_ % 1 ),
+        ('account_nb',      G_AN  % 11),
+        ('operation_code',  G_AN  % 2 ),
+        ('operation_date',  G_N   % 6 ),
+        ('reject_code',     G_N_  % 2 ), 
+        ('value_date',      G_N   % 6 ),
+        ('label',           G_ALL % 31),
+        ('_2',              G_AN_ % 2 ),
+        ('reference',       G_AN  % 7 ),
+        ('exempt_code',     G_AN_ % 1 ),
+        ('_3',              G_AN_ % 1 ),
+        ('amount',          G_AMT     ), 
+        ('_4:',             G_AN_ % 16),
+    ]
+
+
+class ParserContent05(Parser):
+    _code = '05'
+    _regex = [
+        ('record_code',     '(05)'),
+        ('bank_code',       G_N   % 5 ),
+        ('inernal_code',    G_AN  % 4 ),
+        ('desk_code',       G_N   % 5 ),
+        ('currency_code',   G_A_  % 3 ),
+        ('nb_of_dec',       G_N_  % 1 ),
+        ('_1',              G_AN_ % 1 ),
+        ('account_nb',      G_AN  % 11),
+        ('operation_code',  G_AN  % 2 ),
+        ('operation_date',  G_N   % 6 ),
+        ('_2',              G__   % 5 ),
+        ('qualifier',       G_AN  % 3 ),
+        ('additional_info', G_ALL % 70),
+        ('_3',              G__   % 2 ),
+    ] 
+
+    def parse(self, line):
+        result = super(ParserContent05, self).parse(line)
+        parser = Parser.get_parser(result['qualifier'])
+        new_result = parser().parse(result['additional_info'])
+        return new_result
+
+    
+class RoxContent07(Parser):
+    _code = '07'
+    _regex = [
+        ('record_code',     '(07)'           ),
+        ('bank_code',       G_N   % 5 ),
+        ('_1',              G__   % 4 ),
+        ('desk_code',       G_N   % 5 ),
+        ('currency_code',   G_A_  % 3 ),
+        ('nb_of_dec',       G_N_  % 1 ),
+        ('_2',              G__   % 1 ),
+        ('account_nb',      G_AN  % 11),
+        ('_3',              G__   % 2 ),
+        ('next_date',       G_N   % 6 ),
+        ('_4',              G__   % 50),
+        ('next_amount',     G_AMT     ),
+        ('_5',              G__   % 16),
+    ]
+    
+
+class ParserLIB(Parser):
+    _code = "LIB"
+    _regex = [
+        ('label', G_ALL %70),
+    ]
+
+
+class ParserNPY(Parser):
+    _code = "NPY"
+    _regex = [
+        ('debtor_name', G_ALL %70),
+    ]
+
+
+class ParserIPY(Parser):
+    _code = 'IPY'
+    _regex = [
+        ('debtor_id',       G_ALL %35),
+        ('debtor_id_type',  G_ALL %35),
+    ]
+
+
+class ParserNBE(Parser):
+    _code = 'NBE'
+    _regex = [
+        ('creditor_name',   G_ALL %70),
+    ]
+
+
+class ParserIBE(Parser):
+    _code = 'IBE'
+    _regex = [
+        ('creditor_id',         G_ALL %35),
+        ('creditor_id_type',    G_ALL %35),
+    ]
+
+
+class ParserNPO(Parser):
+    _code = 'NPO'
+    _regex = [
+        ('ultimate_debtor_name',    G_ALL %70),
+    ]
+
+
+class ParserIPO(Parser):
+    _code = 'IPO'
+    _regex = [
+        ('ultimate_debtor_id',      G_ALL %35),
+        ('ultimate_debtor_type',    G_ALL %35),
+    ]
+
+
+class ParserNBU(Parser):
+    _code = 'NBU'
+    _regex = [
+        ('ultimate_creditor_name',  G_ALL %70),
+    ]
+
+
+class ParserIBU(Parser):
+    _code = 'IBU'
+    _regex = [
+        ('ultimate_creditor_id',    G_ALL %35),
+        ('ultimate_creditor_type',  G_ALL %35),
+    ]
+
+
+class ParserLCC(Parser):
+    _code = 'LCC'
+    _regex = [
+        ('remittance_information_1',    G_ALL %70),
+    ]
+
+
+class ParserLC2(Parser):
+    _code = 'LC2'
+    _regex = [
+        ('remittance_information_2',    G_ALL %70),
+    ]
+
+
+class ParserLCS(Parser):
+    _code = 'LCS'
+    _regex = [
+        ('creditor_ref_information',    G_ALL %70),
+    ]
+
+
+class ParserRCN(Parser):
+    _code = 'RCN'
+    _regex = [
+        ('end2end_identification',  G_ALL %35),
+        ('purpose',                 G_ALL %35),
+    ]
+
+
+class ParserRCN(Parser):
+    _code = 'RCN'
+    _regex = [
+        ('payment_infor_id',    G_ALL %35),
+        ('instruction_id',      G_ALL %35),
+    ]
+ 
+
+#Specific to bank transfers
+class ParserMMO(Parser):
+    _code = 'MMO'
+    _regex = [
+        ('currency_code',               G_AN  %3),
+        ('nb_of_dec_amount',            G_N   %1),
+        ('equivalent_amount',           G_N_  %14),
+        ('nb_of_dec_exchange_rate',     G_N_  %2),
+        ('exchange_rate',               G_N_  %11),
+        ('_',                           G_AN_ %39)
+    ]
+
+
+class ParserCBE(Parser):
+    _code = 'CBE'
+    _regex = [
+        ('creditor_account',    G_ALL %70),
+    ]
+
+#specific to withdrawal
+# TODO FIXME it's look like there is something wrong in 
+# confb norme indeed 35+4 != 70 and 35 != 70 :S outch!
+#class ParserRUM(Parser):
+#    _code = 'RUM'
+#    _regex = [
+#        ('mandate_identification',  G_ALL %35),
+#        ('sequence_type',           G_ALL %4),
+#    ]
+#
+#class ParserCPY(Parser):
+#    _code = 'CPY'
+#    _regex = [
+#        ('debtor_account',  G_ALL %35),
+#    ]
+#
 
 def parse_amount(amount_str, nb_of_dec):
     """ return a numerical amount from the cfonb amount string
