@@ -65,7 +65,6 @@ class Parser(object):
         for sub_cls in cls.__subclasses__():
             if sub_cls._code == key:
                return sub_cls
-        import pdb; pdb.set_trace()
         raise Exception('No class found')
 
     def __init__(self):
