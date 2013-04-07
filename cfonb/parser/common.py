@@ -1,4 +1,5 @@
 # python import
+from datetime import datetime
 import math
 import re
 
@@ -77,6 +78,14 @@ class Parser(object):
         self.re = re.compile(regex + r'$')
         self.keys = keys
 
+    def _post(self, res):
+        for key in res:
+            if key not in ['qualifier', 'additional_info']:
+                res[key] = res[key].strip()
+        return res
+
+
+
     def parse(self, line):
         if line[-1] == "\n":
             line = line[:-1]
@@ -85,8 +94,8 @@ class Parser(object):
         if match is None:
             raise ParsingError('line is invalid: "%s"' % line)
         else:
-            return dict(zip(self.keys, list(match.groups())))
-
+            res = dict(zip(self.keys, list(match.groups())))
+            return self._post(res)
 
 # http://www.cfonb.org/Web/cfonb/cfonbmain.nsf/DocumentsByIDWeb/7JSHS5/$File/7-8%20Evolution%20Releve%20Comptes%20120%20caracteres%20operations%20virement%20et%20prelevement%20sepa%20V2_0_2010_03.pdf
 
@@ -108,13 +117,20 @@ class ParserContent01(Parser):
         ('_5',              G__   % 16),
      ]
 
+    def _post(self, res):
+        res = super(ParserContent01, self)._post(res)
+        res.update({
+            'prev_amount': parse_amount(res['prev_amount'], res['nb_of_dec']),
+            'prev_date': parse_date(res['prev_date']),
+        })
+        return res
 
 class ParserContent04(Parser):
     _code = '04'
     _regex = [
         ('record_code',     '(04)'           ),
         ('bank_code',       G_N   % 5 ),
-        ('inernal_code',    G_AN  % 4 ),
+        ('internal_code',   G_AN  % 4 ),
         ('desk_code',       G_N   % 5 ),
         ('currency_code',   G_A_  % 3 ),
         ('nb_of_dec',       G_N_  % 1 ),
@@ -133,13 +149,23 @@ class ParserContent04(Parser):
         ('_4:',             G_AN_ % 16),
     ]
 
+    def _post(self, res):
+        res = super(ParserContent04, self)._post(res)
+        res.update({
+            'amount': parse_amount(res['amount'], res['nb_of_dec']),
+            'value_date': parse_date(res['value_date']),
+            'operation_date': parse_date(res['operation_date']),
+        })
+        return res
+
+
 
 class ParserContent05(Parser):
     _code = '05'
     _regex = [
         ('record_code',     '(05)'),
         ('bank_code',       G_N   % 5 ),
-        ('inernal_code',    G_AN  % 4 ),
+        ('internal_code',   G_AN  % 4 ),
         ('desk_code',       G_N   % 5 ),
         ('currency_code',   G_A_  % 3 ),
         ('nb_of_dec',       G_N_  % 1 ),
@@ -178,6 +204,14 @@ class ParserContent07(Parser):
         ('_5',              G__   % 16),
     ]
     
+    def _post(self, res):
+        res = super(ParserContent07, self)._post(res)
+        res.update({
+            'next_amount': parse_amount(res['next_amount'], res['nb_of_dec']),
+            'next_date': parse_date(res['next_date']),
+        })
+        return res
+
 
 class ParserLIB(Parser):
     _code = "LIB"
@@ -295,6 +329,16 @@ class ParserMMO(Parser):
         ('_',                           G_AN_ %39)
     ]
 
+    def _post(self, res):
+        res = super(ParserMMO, self)._post(res)
+        res['equivalent_amount'] = float(res['equivalent_amount'])\
+                                        /float(res['nb_of_dec_amount'])
+        if res['exchange_rate']:
+            res['exchange_rate']=  float(res['exchange_rate'])\
+                                        /float(res['nb_of_dec_exchange_rate'])
+        return res
+
+
 
 class ParserCBE(Parser):
     _code = 'CBE'
@@ -348,6 +392,8 @@ def parse_amount(amount_str, nb_of_dec):
         raise Exception('Bad amount string')
     return amount_num
 
+def parse_date(date):
+    return datetime.strptime(date, '%d%m%y').strftime('%Y-%m-%d')
 
 def write_amount(amount, nb_of_dec):
     """Returns a cfonb string for a numerical amount.
