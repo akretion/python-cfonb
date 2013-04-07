@@ -35,16 +35,6 @@ class ParsingError(Exception):
         return repr(self.value)
 
 
-class Obj():
-    """Generic object build from a given dict.
-    """
-
-    def __init__(self, **entries):
-        """Create real object based on passed dict.
-        """
-        self.__dict__.update(entries)
-
-
 class Row(dict):
     """Generic row object to manage bank file parsing, compare and reading.
     """
@@ -170,7 +160,7 @@ class ParserContent05(Parser):
         return new_result
 
     
-class RoxContent07(Parser):
+class ParserContent07(Parser):
     _code = '07'
     _regex = [
         ('record_code',     '(07)'           ),
