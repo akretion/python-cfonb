@@ -145,7 +145,7 @@ class ParserContent04(Parser):
         ('exempt_code',     G_AN_ % 1 ),
         ('_3',              G_AN_ % 1 ),
         ('amount',          G_AMT     ), 
-        ('_4:',             G_AN_ % 16),
+        ('_4:',             G_ALL % 16),
     ]
 
     def _post(self, res):
