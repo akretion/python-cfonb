@@ -24,9 +24,10 @@ You can read a statement like this::
 
     >>> from os.path import join
     >>> statement_file = open(join('cfonb', 'tests', 'bank_statement.cfo'))
-    >>> from cfonb.parser.statement import Statement
-    >>> statement = Statement()
-    >>> statement.parse(statement_file)
+    >>> from cfonb import StatementReader
+    >>> reader = StatementReader()
+    >>> result = reader.parse(statement_file)
+    >>> statement = result[0]
 
 The statement has a header and a footer, which are both statement rows::
 
