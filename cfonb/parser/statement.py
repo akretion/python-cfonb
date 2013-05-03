@@ -30,6 +30,7 @@ class StatementReader(object):
                     statement = Statement()
                     result[row.account_nb] = statement
                     statement.header = row
+                    statement.account_nb = row.account_nb
 
             elif line[0:2] == '04':
                 row = Row(line)
@@ -52,7 +53,7 @@ class StatementReader(object):
             else:
                 raise ParsingError('line %s is invalid: "%s"' % (index, line))
         
-
+        print result
 
         return [result[key] for key in result]
 
@@ -62,5 +63,6 @@ class Statement(object):
         self.header = None
         self.footer   = None
         self.lines  = list()
+        self.account_nb = None
 
 
