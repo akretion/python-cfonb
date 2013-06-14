@@ -132,7 +132,7 @@ class ParserContent01(Parser):
         ('prev_date',       G_N,     6),
         ('_4',              G__,    50),
         ('prev_amount',     G_AMT,  14),
-        ('_5',              G__,    16),
+        ('_5',              G_ALL,  16),
      ]
 
     def _post(self, res):
