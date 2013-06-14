@@ -71,8 +71,13 @@ class Parser(object):
         self._regex 
         regex = r''
         keys = []
-        for key, value in self._regex:
-            regex += value
+        self.size = 0
+        for key, value, size in self._regex:
+            self.size += size
+            if '%d' in value:
+                regex += value % size
+            else:
+                regex += value
             keys += [key]
         self.re = re.compile(regex + r'$')
         self.keys = keys
@@ -88,10 +93,24 @@ class Parser(object):
     def parse(self, line):
         if line[-1] == "\n":
             line = line[:-1]
+        if len(line) != self.size:
+            raise ParsingError("Invalid line: %s. the len should be %s"
+                               "instead of %s"%self.size, len(line))
         match = self.re.match(line)
         # re check
         if match is None:
-            raise ParsingError('line is invalid: "%s"' % line)
+            message= ''
+            index = 0
+            for key, value, size in self._regex:
+                pattern = '%d' in value and value % size or value
+                if not re.match(pattern, line[:size]):
+                    message += ("The key %s in position %s with the pattern %s"
+                                "do not match with %s\n"
+                                %(key, index, pattern, line[:size]))
+                index += size
+                line = line[size:]
+            raise ParsingError("Invalid line: %s. Please read detail"
+                               "message\n %s" %(line, message))
         else:
             res = dict(zip(self.keys, list(match.groups())))
             return self._post(res)
@@ -101,19 +120,19 @@ class Parser(object):
 class ParserContent01(Parser):
     _code = '01'
     _regex = [
-        ('record_code',     '(01)'           ),
-        ('bank_code',       G_N   % 5 ),
-        ('_1',              G__   % 4 ),
-        ('desk_code',       G_N   % 5 ),
-        ('currency_code',   G_A_  % 3 ),
-        ('nb_of_dec',       G_N_  % 1 ),
-        ('_2',              G__   % 1 ),
-        ('account_nb',      G_AN  % 11),
-        ('_3',              G__   % 2 ),
-        ('prev_date',       G_N   % 6 ),
-        ('_4',              G__   % 50),
-        ('prev_amount',     G_AMT     ),
-        ('_5',              G__   % 16),
+        ('record_code',     '(01)',  2),
+        ('bank_code',       G_N,     5),
+        ('_1',              G__,     4),
+        ('desk_code',       G_N,     5),
+        ('currency_code',   G_A_,    3),
+        ('nb_of_dec',       G_N_,    1),
+        ('_2',              G__,     1),
+        ('account_nb',      G_AN,   11),
+        ('_3',              G__,     2),
+        ('prev_date',       G_N,     6),
+        ('_4',              G__,    50),
+        ('prev_amount',     G_AMT,  14),
+        ('_5',              G__,    16),
      ]
 
     def _post(self, res):
@@ -127,25 +146,25 @@ class ParserContent01(Parser):
 class ParserContent04(Parser):
     _code = '04'
     _regex = [
-        ('record_code',     '(04)'           ),
-        ('bank_code',       G_N   % 5 ),
-        ('internal_code',   G_AN  % 4 ),
-        ('desk_code',       G_N   % 5 ),
-        ('currency_code',   G_A_  % 3 ),
-        ('nb_of_dec',       G_N_  % 1 ),
-        ('_1',              G_ALL % 1 ),
-        ('account_nb',      G_AN  % 11),
-        ('operation_code',  G_AN  % 2 ),
-        ('operation_date',  G_N   % 6 ),
-        ('reject_code',     G_N_  % 2 ), 
-        ('value_date',      G_N   % 6 ),
-        ('label',           G_ALL % 31),
-        ('_2',              G_ALL % 2 ),
-        ('reference',       G_ALL  % 7 ),
-        ('exempt_code',     G_ALL % 1 ),
-        ('_3',              G_ALL % 1 ),
-        ('amount',          G_AMT     ), 
-        ('_4:',             G_ALL % 16),
+        ('record_code',     '(04)',  2),
+        ('bank_code',       G_N,     5),
+        ('internal_code',   G_AN,    4),
+        ('desk_code',       G_N,     5),
+        ('currency_code',   G_A_,    3),
+        ('nb_of_dec',       G_N_,    1),
+        ('_1',              G_ALL,   1),
+        ('account_nb',      G_AN,   11),
+        ('operation_code',  G_AN,    2),
+        ('operation_date',  G_N,     6),
+        ('reject_code',     G_N_,    2), 
+        ('value_date',      G_N,     6),
+        ('label',           G_ALL,  31),
+        ('_2',              G_ALL,   2),
+        ('reference',       G_ALL,   7),
+        ('exempt_code',     G_ALL,   1),
+        ('_3',              G_ALL,   1),
+        ('amount',          G_AMT,  14), 
+        ('_4:',             G_ALL,  16),
     ]
 
     def _post(self, res):
@@ -162,20 +181,20 @@ class ParserContent04(Parser):
 class ParserContent05(Parser):
     _code = '05'
     _regex = [
-        ('record_code',     '(05)'),
-        ('bank_code',       G_N   % 5 ),
-        ('internal_code',   G_AN  % 4 ),
-        ('desk_code',       G_N   % 5 ),
-        ('currency_code',   G_A_  % 3 ),
-        ('nb_of_dec',       G_N_  % 1 ),
-        ('_1',              G_AN_ % 1 ),
-        ('account_nb',      G_AN  % 11),
-        ('operation_code',  G_AN  % 2 ),
-        ('operation_date',  G_N   % 6 ),
-        ('_2',              G__   % 5 ),
-        ('qualifier',       G_AN  % 3 ),
-        ('additional_info', G_ALL % 70),
-        ('_3',              G__   % 2 ),
+        ('record_code',     '(05)',  2),
+        ('bank_code',       G_N,     5),
+        ('internal_code',   G_AN,    4),
+        ('desk_code',       G_N,     5),
+        ('currency_code',   G_A_,    3),
+        ('nb_of_dec',       G_N_,    1),
+        ('_1',              G_AN_,   1),
+        ('account_nb',      G_AN,   11),
+        ('operation_code',  G_AN,    2),
+        ('operation_date',  G_N,     6),
+        ('_2',              G__,     5),
+        ('qualifier',       G_AN,    3),
+        ('additional_info', G_ALL,  70),
+        ('_3',              G__,     2),
     ] 
 
     def parse(self, line):
@@ -188,19 +207,19 @@ class ParserContent05(Parser):
 class ParserContent07(Parser):
     _code = '07'
     _regex = [
-        ('record_code',     '(07)'           ),
-        ('bank_code',       G_N   % 5 ),
-        ('_1',              G__   % 4 ),
-        ('desk_code',       G_N   % 5 ),
-        ('currency_code',   G_A_  % 3 ),
-        ('nb_of_dec',       G_N_  % 1 ),
-        ('_2',              G__   % 1 ),
-        ('account_nb',      G_AN  % 11),
-        ('_3',              G__   % 2 ),
-        ('next_date',       G_N   % 6 ),
-        ('_4',              G__   % 50),
-        ('next_amount',     G_AMT     ),
-        ('_5',              G__   % 16),
+        ('record_code',     '(07)',  2),
+        ('bank_code',       G_N,     5),
+        ('_1',              G__,     4),
+        ('desk_code',       G_N,     5),
+        ('currency_code',   G_A_,    3),
+        ('nb_of_dec',       G_N_,    1),
+        ('_2',              G__,     1),
+        ('account_nb',      G_AN,   11),
+        ('_3',              G__,     2),
+        ('next_date',       G_N,     6),
+        ('_4',              G__,    50),
+        ('next_amount',     G_AMT,  14),
+        ('_5',              G__,    16),
     ]
     
     def _post(self, res):
@@ -215,104 +234,104 @@ class ParserContent07(Parser):
 class ParserLIB(Parser):
     _code = "LIB"
     _regex = [
-        ('label', G_ALL %70),
+        ('label', G_ALL, 70),
     ]
 
 
 class ParserNPY(Parser):
     _code = "NPY"
     _regex = [
-        ('debtor_name', G_ALL %70),
+        ('debtor_name', G_ALL, 70),
     ]
 
 
 class ParserIPY(Parser):
     _code = 'IPY'
     _regex = [
-        ('debtor_id',       G_ALL %35),
-        ('debtor_id_type',  G_ALL %35),
+        ('debtor_id',       G_ALL, 35),
+        ('debtor_id_type',  G_ALL, 35),
     ]
 
 
 class ParserNBE(Parser):
     _code = 'NBE'
     _regex = [
-        ('creditor_name',   G_ALL %70),
+        ('creditor_name',   G_ALL, 70),
     ]
 
 
 class ParserIBE(Parser):
     _code = 'IBE'
     _regex = [
-        ('creditor_id',         G_ALL %35),
-        ('creditor_id_type',    G_ALL %35),
+        ('creditor_id',         G_ALL, 35),
+        ('creditor_id_type',    G_ALL, 35),
     ]
 
 
 class ParserNPO(Parser):
     _code = 'NPO'
     _regex = [
-        ('ultimate_debtor_name',    G_ALL %70),
+        ('ultimate_debtor_name',    G_ALL, 70),
     ]
 
 
 class ParserIPO(Parser):
     _code = 'IPO'
     _regex = [
-        ('ultimate_debtor_id',      G_ALL %35),
-        ('ultimate_debtor_type',    G_ALL %35),
+        ('ultimate_debtor_id',      G_ALL, 35),
+        ('ultimate_debtor_type',    G_ALL, 35),
     ]
 
 
 class ParserNBU(Parser):
     _code = 'NBU'
     _regex = [
-        ('ultimate_creditor_name',  G_ALL %70),
+        ('ultimate_creditor_name',  G_ALL, 70),
     ]
 
 
 class ParserIBU(Parser):
     _code = 'IBU'
     _regex = [
-        ('ultimate_creditor_id',    G_ALL %35),
-        ('ultimate_creditor_type',  G_ALL %35),
+        ('ultimate_creditor_id',    G_ALL, 35),
+        ('ultimate_creditor_type',  G_ALL, 35),
     ]
 
 
 class ParserLCC(Parser):
     _code = 'LCC'
     _regex = [
-        ('remittance_information_1',    G_ALL %70),
+        ('remittance_information_1',    G_ALL, 70),
     ]
 
 
 class ParserLC2(Parser):
     _code = 'LC2'
     _regex = [
-        ('remittance_information_2',    G_ALL %70),
+        ('remittance_information_2',    G_ALL, 70),
     ]
 
 
 class ParserLCS(Parser):
     _code = 'LCS'
     _regex = [
-        ('creditor_ref_information',    G_ALL %70),
+        ('creditor_ref_information',    G_ALL, 70),
     ]
 
 
 class ParserRCN(Parser):
     _code = 'RCN'
     _regex = [
-        ('end2end_identification',  G_ALL %35),
-        ('purpose',                 G_ALL %35),
+        ('end2end_identification',  G_ALL, 35),
+        ('purpose',                 G_ALL, 35),
     ]
 
 
 class ParserRCN(Parser):
     _code = 'RCN'
     _regex = [
-        ('payment_infor_id',    G_ALL %35),
-        ('instruction_id',      G_ALL %35),
+        ('payment_infor_id',    G_ALL, 35),
+        ('instruction_id',      G_ALL, 35),
     ]
  
 
@@ -320,12 +339,12 @@ class ParserRCN(Parser):
 class ParserMMO(Parser):
     _code = 'MMO'
     _regex = [
-        ('currency_code',               G_AN  %3),
-        ('nb_of_dec_amount',            G_N   %1),
-        ('equivalent_amount',           G_N_  %14),
-        ('nb_of_dec_exchange_rate',     G_N_  %2),
-        ('exchange_rate',               G_N_  %11),
-        ('_',                           G_AN_ %39)
+        ('currency_code',               G_AN,   3),
+        ('nb_of_dec_amount',            G_N,    1),
+        ('equivalent_amount',           G_N_,  14),
+        ('nb_of_dec_exchange_rate',     G_N_,   2),
+        ('exchange_rate',               G_N_,  11),
+        ('_',                           G_AN_, 39)
     ]
 
     def _post(self, res):
@@ -342,7 +361,7 @@ class ParserMMO(Parser):
 class ParserCBE(Parser):
     _code = 'CBE'
     _regex = [
-        ('creditor_account',    G_ALL %70),
+        ('creditor_account',    G_ALL, 70),
     ]
 
 #specific to withdrawal
