@@ -65,7 +65,7 @@ class Parser(object):
         for sub_cls in cls.__subclasses__():
             if sub_cls._code == key:
                return sub_cls
-        raise Exception('No class found')
+        raise Exception('No class found for key %s'%key)
 
     def __init__(self):
         self._regex 
@@ -363,6 +363,31 @@ class ParserCBE(Parser):
     _regex = [
         ('creditor_account',    G_ALL, 70),
     ]
+
+
+##### TODO FIXME this 3 new parser are introduced by the new sepa norme but
+# you know administration is an administration and so the spec for the norme
+# are somewhere but I still not suceed to get it, I send an email to the CFONB
+# and I wait for the norme. For now I just process the line like that.
+
+class ParserREF(Parser):
+    _code = 'REF'
+    _regex = [
+        ('ref', G_ALL, 70),
+    ]
+
+class ParserBDB(Parser):
+    _code = 'BDB'
+    _regex = [
+        ('bdb', G_ALL, 70),
+    ]
+
+class ParserLEM(Parser):
+    _code = 'LEM'
+    _regex = [
+        ('lem', G_ALL, 70),
+    ]
+
 
 #specific to withdrawal
 # TODO FIXME it's look like there is something wrong in 
