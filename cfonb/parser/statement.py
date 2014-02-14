@@ -1,7 +1,5 @@
 # cfonb import
-from cfonb.parser import Row, ParsingError
-
-
+from .common import Row, ParsingError
 
 
 class StatementReader(object):

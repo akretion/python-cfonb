@@ -1,2 +1,2 @@
 #
-from parser.statement import StatementReader
+from .parser.statement import StatementReader
