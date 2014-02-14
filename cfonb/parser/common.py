@@ -370,6 +370,12 @@ class ParserCBE(Parser):
 # are somewhere but I still not suceed to get it, I send an email to the CFONB
 # and I wait for the norme. For now I just process the line like that.
 
+#Still no news of the administration
+#It seem that the norm allow bank to add what they want very usefull norm ;)
+#By chance the next norme will may be fix the format.
+#Indeed next norme is "format camt.05". I ask the Cfonb organisation to know when the bank will start to use
+#this new format but ... they don't know ;)
+
 class ParserREF(Parser):
     _code = 'REF'
     _regex = [
@@ -387,6 +393,13 @@ class ParserLEM(Parser):
     _regex = [
         ('lem', G_ALL, 70),
     ]
+
+class ParserPDO(Parser):
+    _code = 'PDO'
+    _regex = [
+        ('pdo', G_ALL, 70),
+    ]
+
 
 
 #specific to withdrawal
