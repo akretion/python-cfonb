@@ -183,7 +183,7 @@ class ParserContent05(Parser):
     _regex = [
         ('record_code',     '(05)',  2),
         ('bank_code',       G_N,     5),
-        ('internal_code',   G_AN,    4),
+        ('internal_code',   G_AN_,   4),
         ('desk_code',       G_N,     5),
         ('currency_code',   G_A_,    3),
         ('nb_of_dec',       G_N_,    1),
