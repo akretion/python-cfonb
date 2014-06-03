@@ -94,8 +94,8 @@ class Parser(object):
         if line[-1] == "\n":
             line = line[:-1]
         if len(line) != self.size:
-            raise ParsingError("Invalid line: %s. the len should be %s"
-                               "instead of %s"%self.size, len(line))
+            raise ParsingError("Invalid line: >%s<. the len should be %s"
+                               "instead of %s" % (line, self.size, len(line)))
         match = self.re.match(line)
         # re check
         if match is None:
