@@ -93,6 +93,8 @@ class Parser(object):
     def parse(self, line):
         if line[-1] == "\n":
             line = line[:-1]
+        if len(line) > self.size and len(line.strip()) <= self.size:
+            line = line[:self.size]
         if len(line) != self.size:
             raise ParsingError("Invalid line: >%s<. the len should be %s"
                                "instead of %s" % (line, self.size, len(line)))
@@ -401,23 +403,20 @@ class ParserPDO(Parser):
     ]
 
 
-
 #specific to withdrawal
-# TODO FIXME it's look like there is something wrong in 
-# confb norme indeed 35+4 != 70 and 35 != 70 :S outch!
-#class ParserRUM(Parser):
-#    _code = 'RUM'
-#    _regex = [
-#        ('mandate_identification',  G_ALL %35),
-#        ('sequence_type',           G_ALL %4),
-#    ]
-#
-#class ParserCPY(Parser):
-#    _code = 'CPY'
-#    _regex = [
-#        ('debtor_account',  G_ALL %35),
-#    ]
-#
+class ParserRUM(Parser):
+    _code = 'RUM'
+    _regex = [
+        ('mandate_identification',  G_ALL, 35),
+        ('sequence_type',           G_ALL, 4),
+    ]
+
+class ParserCPY(Parser):
+    _code = 'CPY'
+    _regex = [
+        ('debtor_account',  G_ALL, 35),
+    ]
+
 
 def parse_amount(amount_str, nb_of_dec):
     """ return a numerical amount from the cfonb amount string
