@@ -1,5 +1,6 @@
 # python import
 from datetime import datetime
+import decimal
 import math
 import re
 
@@ -440,9 +441,9 @@ def parse_amount(amount_str, nb_of_dec):
     debit_trans  = {'J': '1', 'K': '2', 'L': '3', 'M': '4', 'N': '5',
                     'O': '6', 'P': '7', 'Q': '8', 'R': '9', '}': '0'}
     if amount_str[-1] in debit_trans:
-        amount_num = -float(amount_str.replace(amount_str[-1], debit_trans[amount_str[-1]]))
+        amount_num = decimal.Decimal('-' + amount_str.replace(amount_str[-1], debit_trans[amount_str[-1]]))
     elif amount_str[-1] in credit_trans:
-        amount_num = float(amount_str.replace(amount_str[-1], credit_trans[amount_str[-1]]))
+        amount_num = decimal.Decimal(amount_str.replace(amount_str[-1], credit_trans[amount_str[-1]]))
     else:
         raise Exception('Bad amount string')
     return amount_num
