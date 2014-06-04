@@ -93,9 +93,11 @@ class Parser(object):
     def parse(self, line):
         if line[-1] == "\n":
             line = line[:-1]
+        if len(line) > self.size and len(line.strip()) <= self.size:
+            line = line[:self.size]
         if len(line) != self.size:
-            raise ParsingError("Invalid line: %s. the len should be %s"
-                               "instead of %s"%self.size, len(line))
+            raise ParsingError("Invalid line: >%s<. the len should be %s"
+                               "instead of %s" % (line, self.size, len(line)))
         match = self.re.match(line)
         # re check
         if match is None:
@@ -183,7 +185,7 @@ class ParserContent05(Parser):
     _regex = [
         ('record_code',     '(05)',  2),
         ('bank_code',       G_N,     5),
-        ('internal_code',   G_AN,    4),
+        ('internal_code',   G_AN_,   4),
         ('desk_code',       G_N,     5),
         ('currency_code',   G_A_,    3),
         ('nb_of_dec',       G_N_,    1),
@@ -401,23 +403,20 @@ class ParserPDO(Parser):
     ]
 
 
-
 #specific to withdrawal
-# TODO FIXME it's look like there is something wrong in 
-# confb norme indeed 35+4 != 70 and 35 != 70 :S outch!
-#class ParserRUM(Parser):
-#    _code = 'RUM'
-#    _regex = [
-#        ('mandate_identification',  G_ALL %35),
-#        ('sequence_type',           G_ALL %4),
-#    ]
-#
-#class ParserCPY(Parser):
-#    _code = 'CPY'
-#    _regex = [
-#        ('debtor_account',  G_ALL %35),
-#    ]
-#
+class ParserRUM(Parser):
+    _code = 'RUM'
+    _regex = [
+        ('mandate_identification',  G_ALL, 35),
+        ('sequence_type',           G_ALL, 4),
+    ]
+
+class ParserCPY(Parser):
+    _code = 'CPY'
+    _regex = [
+        ('debtor_account',  G_ALL, 35),
+    ]
+
 
 def parse_amount(amount_str, nb_of_dec):
     """ return a numerical amount from the cfonb amount string
