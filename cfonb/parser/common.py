@@ -404,6 +404,13 @@ class ParserPDO(Parser):
     ]
 
 
+class ParserRET(Parser):
+    _code = 'RET'
+    _regex = [
+        ('ret', G_ALL, 70),
+    ]
+
+
 #specific to withdrawal
 class ParserRUM(Parser):
     _code = 'RUM'
