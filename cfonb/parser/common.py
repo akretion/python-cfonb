@@ -50,7 +50,7 @@ class Row(dict):
         """
         # do re match
         parser = Parser.get_parser(line[0:2])
-        self.update(parser().parse(line))
+        self.update(parser.parse(line))
         
     def __getattr__(self, attr):
         return self[attr]
@@ -65,8 +65,8 @@ class Parser(object):
     def get_parser(cls, key):
         for sub_cls in cls.__subclasses__():
             if sub_cls._code == key:
-               return sub_cls
-        raise Exception('No class found for key %s'%key)
+               return sub_cls()
+        return ParserGeneric(key)
 
     def __init__(self):
         self._regex 
@@ -203,7 +203,7 @@ class ParserContent05(Parser):
     def parse(self, line):
         result = super(ParserContent05, self).parse(line)
         parser = Parser.get_parser(result['qualifier'])
-        new_result = parser().parse(result['additional_info'])
+        new_result = parser.parse(result['additional_info'])
         return new_result
 
     
@@ -368,47 +368,16 @@ class ParserCBE(Parser):
     ]
 
 
-##### TODO FIXME this 3 new parser are introduced by the new sepa norme but
-# you know administration is an administration and so the spec for the norme
-# are somewhere but I still not suceed to get it, I send an email to the CFONB
-# and I wait for the norme. For now I just process the line like that.
+#Use a generic parser for all case that are not in the norme...
+class ParserGeneric(Parser):
+    _code = None
+    _regex = []
 
-#Still no news of the administration
-#It seem that the norm allow bank to add what they want very usefull norm ;)
-#By chance the next norme will may be fix the format.
-#Indeed next norme is "format camt.05". I ask the Cfonb organisation to know when the bank will start to use
-#this new format but ... they don't know ;)
+    def __init__(self, code):
+        self._code = code
 
-class ParserREF(Parser):
-    _code = 'REF'
-    _regex = [
-        ('ref', G_ALL, 70),
-    ]
-
-class ParserBDB(Parser):
-    _code = 'BDB'
-    _regex = [
-        ('bdb', G_ALL, 70),
-    ]
-
-class ParserLEM(Parser):
-    _code = 'LEM'
-    _regex = [
-        ('lem', G_ALL, 70),
-    ]
-
-class ParserPDO(Parser):
-    _code = 'PDO'
-    _regex = [
-        ('pdo', G_ALL, 70),
-    ]
-
-
-class ParserRET(Parser):
-    _code = 'RET'
-    _regex = [
-        ('ret', G_ALL, 70),
-    ]
+    def parse(self, line):
+        return {self._code: line}
 
 
 #specific to withdrawal
