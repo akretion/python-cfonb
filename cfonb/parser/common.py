@@ -330,8 +330,8 @@ class ParserRCN(Parser):
     ]
 
 
-class ParserRCN(Parser):
-    _code = 'RCN'
+class ParserREF(Parser):
+    _code = 'REF'
     _regex = [
         ('payment_infor_id',    G_ALL, 35),
         ('instruction_id',      G_ALL, 35),
