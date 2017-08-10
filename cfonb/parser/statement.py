@@ -50,8 +50,6 @@ class StatementReader(object):
                 statement.footer = Row(line)
             else:
                 raise ParsingError('line %s is invalid: "%s"' % (index, line))
-        
-        print result
 
         return [result[key] for key in result]
 
